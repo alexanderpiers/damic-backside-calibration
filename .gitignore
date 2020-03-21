@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# CMake files
+/analysis/CMakeFiles
+
+# Compile executables
+backside_calibration_analysis
+
+# Output files
+*.root
