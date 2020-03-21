@@ -53,9 +53,16 @@ std::vector<double> ParticleInteraction::GetZ(){
 }
 
 ParticleCollection::ParticleCollection(){};
+
 ParticleCollection::ParticleCollection(std::vector<ParticleInteraction> col){
 	for (auto interaction : col)
 	{
+		collection.push_back(interaction);
+	}
+}
+
+ParticleCollection::ParticleCollection(const ParticleCollection & parcol){
+	for (auto interaction : parcol.collection){
 		collection.push_back(interaction);
 	}
 }
@@ -115,7 +122,13 @@ void ParticleCollection::PlotEnergyProjection(TH1D * hSpectrum){
 	}
 }
 
-void ParticleCollection::ApplyPartialChargeModel(TH1D * hCorrSpectrum, TF1 * fPartialCharge){
+void ParticleCollection::ApplyPartialChargeModel(TH1D * hCorrSpectrum, TF1 * fPartialCharge) const{
+
+	// Ensure that histogram is empty before performing pcc
+	for (int i = 0; i <= hCorrSpectrum->GetNbinsX(); ++i)
+	{
+		hCorrSpectrum->SetBinContent(i, 0);
+	}
 
 	// Iterate over every particle interaction, applying fPartialCharge Correction
 	for(auto interaction : collection){

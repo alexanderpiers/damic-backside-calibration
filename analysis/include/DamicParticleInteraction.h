@@ -65,11 +65,12 @@ class ParticleCollection
 public:
 	ParticleCollection();
 	ParticleCollection(std::vector<ParticleInteraction> );
+	ParticleCollection(const ParticleCollection & parcol);
 	~ParticleCollection();
 
 	void ReadROOTFile(const char * filename);
 	void PlotEnergyProjection(TH1D * hSpectrum);
-	void ApplyPartialChargeModel(TH1D * hCorrSpectrum, TF1 * fPartialCharge);
+	void ApplyPartialChargeModel(TH1D * hCorrSpectrum, TF1 * fPartialCharge) const;
 
 
 	std::vector<ParticleInteraction> collection;

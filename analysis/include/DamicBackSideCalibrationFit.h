@@ -1,6 +1,12 @@
 #ifndef DAMICBACKSIDECALIBRATIONFIT_H
 #define DAMICBACKSIDECALIBRATIONFIT_H
 
+// Custom includes
+#include "DamicParticleInteraction.h"
+
+// Standard includes
+#include <cassert>
+
 // ROOT includes
 #include "TF1.h"
 #include "TH1D.h"
@@ -21,26 +27,34 @@
 #include "Minuit2/MnScan.h"
 
 // Defining PCC function
-const int npar = 9;
-extern double nominalParameters[npar];// = {0.00745023, 0.027043, 0.00371954, 0.0728877, -0.0416052, 0.00999033, -0.0011136, 4.68929e-05, 0};
+const int npolynomial = 8;
+const int npar = 10;
+extern std::array<double, npar> nominalParameters;// = {0.00745023, 0.027043, 0.00371954, 0.0728877, -0.0416052, 0.00999033, -0.0011136, 4.68929e-05, 0};
 double fpcc(double *x, double * par);
+
+// Defining overall fit functions
+ROOT::Minuit2::FunctionMinimum PerformCalibrationFit(TH1D& data, ParticleCollection& simulation);
+
 
 // Define minimizer function 
 class CalibrationFitFcn : public ROOT::Minuit2::FCNBase{
 public:
-	CalibrationFitFcn(TH1D& data, TH1D& sim) : theData(data), 
-		theTemplate(sim), theErrorDef(1.) {};
-	~CalibrationFitFcn() {};
+	CalibrationFitFcn(TH1D& data, ParticleCollection& sim, double * params);
+	~CalibrationFitFcn();
 
-	virtual double up() const {return theErrorDef; }; 
+	virtual double Up() const {return theErrorDef; }
 	virtual double operator()(const std::vector<double>& ) const;
 
 	void setErrorDef(double def) {theErrorDef = def; };
 	
 
 private:
-	TH1D theData, theTemplate;
+	TH1D theData;
+	TH1D * theTemplate;
+	ParticleCollection theCollection;
 	double theErrorDef;
+	TF1 * fPartialCharge; // Partial Charge transformation
+	double * fPartialChargeParams;
 };
 
 #endif
