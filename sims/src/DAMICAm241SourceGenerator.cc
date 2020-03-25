@@ -34,6 +34,12 @@ G4DynamicParticle * DAMICAm241Source::generateAlphaDecay(){
 	// Define particle with the selected energy
 	double energy = vAlphaEnergy[si];
 	G4String type = "alpha";
+	G4ThreeVector momentum = generateIsotropicMomentum();
+	G4ParticleDefinition * particle = G4ParticleTable::GetParticleTable()->FindParticle(type);
+
+	// Create particle and return it
+	return new G4DynamicParticle(particle, momentum, energy);
+
 
 }
 
@@ -67,7 +73,8 @@ G4ThreeVector DAMICAm241Source::generateGeneralMomentum(double minPhi, double ma
 
 	double phi = minPhi + G4UniformRand() * ( maxPhi - minPhi );
 	double theta = minTheta + G4UniformRand() * ( maxTheta - minTheta );
-	return G4ThreeVector(cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
+	G4ThreeVector generalMomemtum(cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
+	return generalMomemtum;
 
 }
 
