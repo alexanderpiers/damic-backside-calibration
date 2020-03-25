@@ -32,10 +32,14 @@
 *.app
 
 # CMake files
-/analysis/CMakeFiles
+CMakeCache.txt
+CMakeFiles/
+*.cmake
+Makefile
 
 # Compile executables
 backside_calibration_analysis
+silicon
 
 # Output files
 *.root

@@ -1,3 +1,0 @@
-/home/apiers/Documents/damic/Feb2018DamicWorkshop/back-side-calibration/sims/build/CMakeFiles/rebuild_cache.dir
-/home/apiers/Documents/damic/Feb2018DamicWorkshop/back-side-calibration/sims/build/CMakeFiles/silicon.dir
-/home/apiers/Documents/damic/Feb2018DamicWorkshop/back-side-calibration/sims/build/CMakeFiles/edit_cache.dir
