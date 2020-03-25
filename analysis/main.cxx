@@ -46,6 +46,7 @@ int main(int argc, char const *argv[])
 	// Try to fit spectrum
 	printf("Perform minimization between data and template...\n");
 	ROOT::Minuit2::FunctionMinimum calmin = PerformCalibrationFit(*correctedSpectrum, collection);
+	std::cout << calmin << std::endl;
 
 	// Write output files
 	fout->Write();

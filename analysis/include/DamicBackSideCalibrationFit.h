@@ -6,6 +6,7 @@
 
 // Standard includes
 #include <cassert>
+#include <cmath>
 
 // ROOT includes
 #include "TF1.h"
@@ -31,6 +32,7 @@ const int npolynomial = 8;
 const int npar = 10;
 extern std::array<double, npar> nominalParameters;// = {0.00745023, 0.027043, 0.00371954, 0.0728877, -0.0416052, 0.00999033, -0.0011136, 4.68929e-05, 0};
 double fpcc(double *x, double * par);
+
 
 // Defining overall fit functions
 ROOT::Minuit2::FunctionMinimum PerformCalibrationFit(TH1D& data, ParticleCollection& simulation);
