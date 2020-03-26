@@ -26,12 +26,15 @@ int main(int argc, char const *argv[])
 	printf("Creating raw spectrum...\n");
 	TH1D * rawSpectrum = new TH1D("rawSpec", "rawSpec", 200, 0, 60);
 	collection.PlotEnergyProjection(rawSpectrum);
-	new TCanvas(); rawSpectrum->Draw("ahist");
+	new TCanvas();
+	rawSpectrum->GetYaxis()->SetTitle("Counts");
+	rawSpectrum->GetXaxis()->SetTitle("Energy [keV]");
+	rawSpectrum->Draw("ahist");
 
 	// Apply Transformation to spectrum with random seed offset
 	printf("Applying PCC transformation...\n");
 	std::array<double, npar> randompar = nominalParameters;
-	TRandom3 * fitrand = new TRandom3(1);
+	TRandom3 * fitrand = new TRandom3(2);
 	double shift = fitrand->Uniform() - 0.2;
 	randompar[npolynomial] = shift;
 	printf("Random shift: %0.4f \n", shift);
@@ -41,12 +44,24 @@ int main(int argc, char const *argv[])
 
 	TH1D * correctedSpectrum = new TH1D("corrSpec", "corrSpec", 200, 0, 60);
 	collection.ApplyPartialChargeModel(correctedSpectrum, chargeEff);
-	new TCanvas(); correctedSpectrum->Draw("ahist");
+	new TCanvas();
+	correctedSpectrum->GetYaxis()->SetTitle("Counts");
+	correctedSpectrum->GetXaxis()->SetTitle("Energy [keV]");
+	correctedSpectrum->Draw("ahist");
+	TH1D poisfluc = GeneratePoissonBinHisto(*correctedSpectrum); 
+	// poisfluc.SetBinErrorOption(TH1::kPoisson);
+	poisfluc.SetLineColor(kBlack);
+	poisfluc.Draw("ep0same");
 
 	// Try to fit spectrum
 	printf("Perform minimization between data and template...\n");
-	ROOT::Minuit2::FunctionMinimum calmin = PerformCalibrationFit(*correctedSpectrum, collection);
+	ROOT::Minuit2::FunctionMinimum calmin = PerformCalibrationFit(poisfluc, collection);
 	std::cout << calmin << std::endl;
+
+	// Perform MC test
+	const int ntrials = 100;
+	std::vector<CalibrationFitData_t> vMonteCarloResults(ntrials);
+	MonteCarloCalibrationFit(collection, vMonteCarloResults);
 
 	// Write output files
 	fout->Write();
