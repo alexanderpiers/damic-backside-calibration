@@ -5,10 +5,11 @@ double fpcc(double *x, double * par){
 
 
 	// Check to see if we are outside PCC region
-	if(x[0] < 668.5) return 1;
+	double shift = 675;
+	if(x[0] < (shift - 7 / par[9])) return 1;
 
 	// Transform x
-	double xtrans = -(x[0] - par[8] - 675);
+	double xtrans = -par[9] * (x[0] - par[8] -  shift);
 
 	// Evaluate polynomial
 	const int ndegrees = 7; // order of polynomial
@@ -19,6 +20,7 @@ double fpcc(double *x, double * par){
 	}
 
 	// Check boundary conditions and return
+	// cout << xtrans << "  " << fv << endl;
 	if(fv < 0){
 		return 0;
 	}else if(fv > 1){
@@ -28,6 +30,10 @@ double fpcc(double *x, double * par){
 	}
 }
 
+void CalibrationFitData_t::Print(){
+	printf("True Shift: %.3f, Fit Shift: %.3f, True Scale: %.3f, Fit Scale: %.3f, True Shift: %.3f, Converged: %i\n", 
+		trueShift, fitShift, trueScale, fitScale, isConverged);
+}
 CalibrationFitFcn::CalibrationFitFcn(TH1D& data, ParticleCollection& sim, double * params) :
 		theData(data), theCollection(sim), theErrorDef(0.5) 
 {
@@ -108,7 +114,7 @@ ROOT::Minuit2::FunctionMinimum PerformCalibrationFit(TH1D& data, ParticleCollect
 
 	// Conditions on parameters
 	upar.SetLimits("Translation", -1, 1);
-	upar.Fix("Scaling");
+	upar.SetLimits("Scaling", 0.8, 1.2);
 	upar.Fix("Normalization");
 
 	// Checking a manual scan
@@ -128,14 +134,14 @@ ROOT::Minuit2::FunctionMinimum PerformCalibrationFit(TH1D& data, ParticleCollect
 
 	// Create simplex minimizer and minimize
 	ROOT::Minuit2::MnSimplex simplex(calFcn, upar);
-	ROOT::Minuit2::FunctionMinimum calMinimumSx = simplex(1000, 1.);
+	ROOT::Minuit2::FunctionMinimum calMinimumSx = simplex(1000, 10.);
 
 
 	return calMinimumSx;
 }
 
 // Data structure conversions
-void ConvertCalFitDataToTree(std::vector<CalibrationFitData_t> & vCalData, TTree &t){
+void ConvertCalFitDataToTree(std::vector<CalibrationFitData_t> const &vCalData, TTree &t){
 
 	// Define tree variables
 	double trueShift, trueScale, fitShift, fitScale;
@@ -156,18 +162,20 @@ void ConvertCalFitDataToTree(std::vector<CalibrationFitData_t> & vCalData, TTree
 		fitShift    = cal.fitShift;
 		fitScale    = cal.fitScale;
 		isConverged = cal.isConverged;
+		std::cout << cal.trueShift << "\t" << cal.fitShift << std::endl;
+
 		t.Fill();
 	}
 }
 
 // Monte Carlo Functions
-TH1D GeneratePoissonBinHisto(TH1D & histo, unsigned seed, std::string name){
+TH1D * GeneratePoissonBinHisto(TH1D & histo, unsigned seed, std::string name){
 
 	// Create new histogram
 	int nbins   = histo.GetNbinsX();
 	double xmin = histo.GetXaxis()->GetXmin();
 	double xmax = histo.GetXaxis()->GetXmax();
-	TH1D poissFluc(name.c_str(), name.c_str(), nbins, xmin, xmax);
+	TH1D * poissFluc = new TH1D(name.c_str(), name.c_str(), nbins, xmin, xmax);
 
 	// Create random number generator
 	std::default_random_engine generator;
@@ -186,15 +194,15 @@ TH1D GeneratePoissonBinHisto(TH1D & histo, unsigned seed, std::string name){
 
 		// Compute bin value. Set bin and error value
 		double poissBinValue = pois(generator);
-		poissFluc.SetBinContent(i, poissBinValue);
-		poissFluc.SetBinError(i, sqrt((double) poissBinValue));
+		poissFluc->SetBinContent(i, poissBinValue);
+		poissFluc->SetBinError(i, sqrt((double) poissBinValue));
 	}
 
 	return poissFluc;
 
 }
 
-void MonteCarloCalibrationFit(ParticleCollection& simulation, std::vector<CalibrationFitData_t> vCalData, unsigned seed){
+void MonteCarloCalibrationFit(ParticleCollection& simulation, std::vector<CalibrationFitData_t> &vCalData, unsigned seed){
 
 	// Define relevant variables
 	std::array<double, npar> params = nominalParameters;
@@ -212,12 +220,14 @@ void MonteCarloCalibrationFit(ParticleCollection& simulation, std::vector<Calibr
 	std::uniform_real_distribution<double> randomShiftDistribution(-0.5, 0.5);
 	std::uniform_real_distribution<double> randomScaleDistribution(0.9, 1.1);
 
-
 	// Generate monte carlo data
 	std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-	std::vector<TH1D> vDataMC(ntrials);
+	std::vector<TH1D*> vDataMC(ntrials);
+	// #pragma omp parallel for
 	for (int i = 0; i < ntrials; ++i)
 	{
+		printf("Trial %i\n", i);
+
 		// generate random fit parameters
 		double shiftMC = randomShiftDistribution(generator);
 		double scaleMC = randomScaleDistribution(generator);
@@ -227,26 +237,32 @@ void MonteCarloCalibrationFit(ParticleCollection& simulation, std::vector<Calibr
 		params[npolynomial + 1] = scaleMC;
 		vCalData[i].trueShift   = shiftMC;
 		vCalData[i].trueScale   = scaleMC;
-		
-		fPartialChargeMC->SetParameters(params.data());
-		simulation.ApplyPartialChargeModel(&hMC, fPartialChargeMC);
-		vDataMC[i] = GeneratePoissonBinHisto(hMC, seed, "test_" + i);
 
+		// TH1D * hMC = new TH1D(("histoMC" + std::to_string(i)).c_str(), "histoMC", 200, 0, 60);
+		fPartialChargeMC->SetParameters(params.data());
+		// TF1 *fPartialChargeMC = new TF1(("fpcc" + std::to_string(i)).c_str(), fpcc, 0, 675, npar);
+		// fPartialChargeMC->SetParameters(params.data());
+		simulation.ApplyPartialChargeModel(&hMC, fPartialChargeMC);
+		vDataMC[i] = GeneratePoissonBinHisto(hMC, seed, "test_" + std::to_string(i));
+		// delete hMC;
 	}
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	std::cout << "Time to generate data: " << std::chrono::duration_cast<std::chrono::seconds>(end-start).count() << " s" << std::endl;
 
 	// Perform fits on MC data
-	// for (int i = 0; i < ntrials; ++i)
-	// {
-	// 	printf("Trial %i\n", i);
-	// 	ROOT::Minuit2::FunctionMinimum calminMC = PerformCalibrationFit(vDataMC[i], simulation);
+	// #pragma omp parallel for
+	for (int i = 0; i < ntrials; ++i)
+	{
+		printf("Trial %i\n", i);
+		ROOT::Minuit2::FunctionMinimum calminMC = PerformCalibrationFit(*vDataMC[i], simulation);
 
-	// 	// Parse fit results into data structure
-	// 	vCalData[i].fitShift = calminMC.UserParameters().Value(0);
-	// 	vCalData[i].fitScale = calminMC.UserParameters().Value(1);
-	// 	vCalData[i].isConverged = calminMC.IsValid();
-	// }
+		// Parse fit results into data structure
+		vCalData[i].fitShift = calminMC.UserParameters().Value(0);
+		vCalData[i].fitScale = calminMC.UserParameters().Value(1);
+		vCalData[i].isConverged = calminMC.IsValid();
+
+		// std::cout << vCalData[i].trueShift << "\t" << vCalData[i].fitShift << std::endl;
+	}
 
 
 	delete fPartialChargeMC;

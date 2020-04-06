@@ -7,6 +7,10 @@
 
 using namespace std;
 
+const int nbins = 200;
+const double emin = 0;
+const double emax = 60;
+
 int main(int argc, char const *argv[])
 {
 	auto app = new TApplication("backside_cal", 0, 0);
@@ -17,7 +21,7 @@ int main(int argc, char const *argv[])
 	// Create particle collection from Geant4 file
 	printf("Read Particle Collection from file...\n");
 	ParticleCollection collection;
-	collection.ReadROOTFile("../sims/build/si_penetration_depth.root");
+	collection.ReadROOTFile("../sims/build/si_penetration_depth_large.root");
 
 	// Create output file
 	TFile * fout = new TFile("output.root", "RECREATE");
@@ -34,10 +38,12 @@ int main(int argc, char const *argv[])
 	// Apply Transformation to spectrum with random seed offset
 	printf("Applying PCC transformation...\n");
 	std::array<double, npar> randompar = nominalParameters;
-	TRandom3 * fitrand = new TRandom3(2);
+	TRandom3 * fitrand = new TRandom3(3);
 	double shift = fitrand->Uniform() - 0.2;
+	double scale = fitrand->Uniform() / 5 + 0.9;
 	randompar[npolynomial] = shift;
-	printf("Random shift: %0.4f \n", shift);
+	randompar[npolynomial + 1] = scale;
+	printf("Random shift: %0.3f \t Random Scale: %0.3f \n", shift, scale);
 
 	TF1 * chargeEff = new TF1("fpcc", fpcc, 0, 675, npar);
 	chargeEff->SetParameters(randompar.data());
@@ -47,21 +53,34 @@ int main(int argc, char const *argv[])
 	new TCanvas();
 	correctedSpectrum->GetYaxis()->SetTitle("Counts");
 	correctedSpectrum->GetXaxis()->SetTitle("Energy [keV]");
-	correctedSpectrum->Draw("ahist");
-	TH1D poisfluc = GeneratePoissonBinHisto(*correctedSpectrum); 
-	// poisfluc.SetBinErrorOption(TH1::kPoisson);
-	poisfluc.SetLineColor(kBlack);
-	poisfluc.Draw("ep0same");
+	// correctedSpectrum->Draw("hist");
+	TH1D * poisfluc = GeneratePoissonBinHisto(*correctedSpectrum); 
+	poisfluc->SetLineColor(kBlack);
+	poisfluc->Draw("ep0");
+
 
 	// Try to fit spectrum
 	printf("Perform minimization between data and template...\n");
-	ROOT::Minuit2::FunctionMinimum calmin = PerformCalibrationFit(poisfluc, collection);
+	ROOT::Minuit2::FunctionMinimum calmin = PerformCalibrationFit(*poisfluc, collection);
 	std::cout << calmin << std::endl;
+	randompar[npolynomial]     = calmin.UserParameters().Value(0);
+	randompar[npolynomial + 1] = calmin.UserParameters().Value(1);
+	TH1D * fitSpectrum = new TH1D("fitspec", "fitspec", nbins, emin, emax);
+	collection.ApplyPartialChargeModel(fitSpectrum, chargeEff);
+	fitSpectrum->SetLineColor(kRed);
+	fitSpectrum->Draw("histsame");
+
+
+	// Plot the fit charge collection model
+	new TCanvas();
+	chargeEff->Draw();
 
 	// Perform MC test
-	const int ntrials = 100;
-	std::vector<CalibrationFitData_t> vMonteCarloResults(ntrials);
-	MonteCarloCalibrationFit(collection, vMonteCarloResults);
+	// const int ntrials = 1000;
+	// std::vector<CalibrationFitData_t> vMonteCarloResults(ntrials);
+	// MonteCarloCalibrationFit(collection, vMonteCarloResults);
+	// TTree tout("MonteCarloFit", "MonteCarloFit");
+	// ConvertCalFitDataToTree(vMonteCarloResults, tout);
 
 	// Write output files
 	fout->Write();
