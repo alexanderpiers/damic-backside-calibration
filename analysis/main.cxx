@@ -7,9 +7,9 @@
 
 using namespace std;
 
-const int nbins = 200;
+const int nbins = 300;
 const double emin = 0;
-const double emax = 60;
+const double emax = 20;
 
 int main(int argc, char const *argv[])
 {
@@ -21,14 +21,14 @@ int main(int argc, char const *argv[])
 	// Create particle collection from Geant4 file
 	printf("Read Particle Collection from file...\n");
 	ParticleCollection collection;
-	collection.ReadROOTFile("../sims/build/si_penetration_depth_large.root");
+	collection.ReadROOTFile("../sims/build/test_fe55.root");
 
 	// Create output file
-	TFile * fout = new TFile("output.root", "RECREATE");
+	TFile * fout = new TFile("fe55_output.root", "RECREATE");
 
 	// Draw spectrum
 	printf("Creating raw spectrum...\n");
-	TH1D * rawSpectrum = new TH1D("rawSpec", "rawSpec", 200, 0, 60);
+	TH1D * rawSpectrum = new TH1D("rawSpec", "rawSpec", nbins, 0, emax);
 	collection.PlotEnergyProjection(rawSpectrum);
 	new TCanvas();
 	rawSpectrum->GetYaxis()->SetTitle("Counts");
@@ -38,17 +38,18 @@ int main(int argc, char const *argv[])
 	// Apply Transformation to spectrum with random seed offset
 	printf("Applying PCC transformation...\n");
 	std::array<double, npar> randompar = nominalParameters;
-	TRandom3 * fitrand = new TRandom3(3);
+	TRandom3 * fitrand = new TRandom3(50);
 	double shift = fitrand->Uniform() - 0.2;
 	double scale = fitrand->Uniform() / 5 + 0.9;
-	randompar[npolynomial] = shift;
-	randompar[npolynomial + 1] = scale;
+	randompar[npolynomial] = 0;
+	randompar[npolynomial + 1] = 1;
 	printf("Random shift: %0.3f \t Random Scale: %0.3f \n", shift, scale);
 
 	TF1 * chargeEff = new TF1("fpcc", fpcc, 0, 675, npar);
 	chargeEff->SetParameters(randompar.data());
+	chargeEff->SetNpx(1000);
 
-	TH1D * correctedSpectrum = new TH1D("corrSpec", "corrSpec", 200, 0, 60);
+	TH1D * correctedSpectrum = new TH1D("corrSpec", "corrSpec", nbins, 0, emax);
 	collection.ApplyPartialChargeModel(correctedSpectrum, chargeEff);
 	new TCanvas();
 	correctedSpectrum->GetYaxis()->SetTitle("Counts");

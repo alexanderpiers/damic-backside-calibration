@@ -45,6 +45,7 @@ G4VPhysicalVolume* SiliconDetectorConstruction::Construct()
 	G4Material* defaultMat = nist->FindOrBuildMaterial("G4_AIR");
 
 	G4Material* Si = nist->FindOrBuildMaterial("G4_Si");
+	G4Material* Al = nist->FindOrBuildMaterial("G4_Al");
 
 	double a;
 	a = 14.01*g/mole;
@@ -89,18 +90,34 @@ G4VPhysicalVolume* SiliconDetectorConstruction::Construct()
 
 	G4LogicalVolume* SiliconLV =
 		new G4LogicalVolume(SiliconS,
-							Si,
+							Al,
 							"Silicon");
 
 	fSiliconPV =
 		new G4PVPlacement(	0,
-							G4ThreeVector(),
+							G4ThreeVector(0, 0, siliconZ/2),
 							SiliconLV,
 							"Silicon",
 							logicalWorld,
 							false,
 							0);
 
+
+	// Define alpha blocking layer
+	// G4Box* blockingLayer = new G4Box("Blocking",
+	// 								 siliconXY/2,
+	// 								 siliconXY/2,
+	// 								 2.5 * um);
+
+	// G4LogicalVolume * blockingLayerLV = new G4LogicalVolume(blockingLayer, Al, "Blocking");
+
+	// G4PVPlacement * blockingLayerPV = new G4PVPlacement( 0, 
+	// 													 G4ThreeVector(0, 0, 5*mm),
+	// 													 blockingLayerLV,
+	// 													 "Blocking",
+	// 													 logicalWorld,
+	// 													 false,
+	// 													 0);
 	
 	// Setting up sensitive detector for the Silicon body. Only uses if SIMPLE is false
 	if(!SIMPLE)

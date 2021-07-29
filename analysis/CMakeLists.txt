@@ -8,7 +8,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 #----------------------------------------------------------
 # Location of root fies
-list(APPEND CMAKE_PREFIX_PATH /home/apiers/rootbuilds/root6-18/cmake)
+# list(APPEND CMAKE_PREFIX_PATH /home/apiers/rootbuilds/root6-18/cmake)
 find_package(ROOT REQUIRED COMPONENTS Minuit2)
 
 # openmp 
@@ -20,11 +20,15 @@ include_directories(${ROOT_INCLUDE_DIRS})
 link_directories(${ROOT_LIBRARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+
 #----------------------------------------------------------
 # Locate source and header files for project
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cxx)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h)
 
+message( STATUS ${ROOT_INCLUDE_DIRS} )
+message( STATUS ${ROOT_LIBRARY_DIR}  )
+message( STATUS ${ROOT_LIBRARIES} )
 
 #----------------------------------------------------------
 # Create an executable and link to root libraries

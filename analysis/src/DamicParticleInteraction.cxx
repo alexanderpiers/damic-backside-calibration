@@ -52,6 +52,25 @@ std::vector<double> ParticleInteraction::GetZ(){
 	return z;
 }
 
+Position ParticleInteraction::GetWeightedPosition(){
+	double xw = 0;
+	double yw = 0;
+	double zw = 0;
+
+	std::vector<Position> pos = GetPosition();
+	std::vector<double> energy = GetEnergy();
+
+	for (int i = 0; i < GetNSteps(); ++i)
+	 {
+	 	xw += energy[i] * pos[i].x;
+	 	yw += energy[i] * pos[i].y;
+	 	zw += energy[i] * pos[i].z;
+
+	 } 
+
+	return Position(xw, yw, zw);
+}
+
 ParticleCollection::ParticleCollection(){};
 
 ParticleCollection::ParticleCollection(std::vector<ParticleInteraction> col){
@@ -120,6 +139,18 @@ void ParticleCollection::PlotEnergyProjection(TH1D * hSpectrum){
 	for(auto interaction : collection){
 		hSpectrum->Fill(interaction.GetTotalEnergy());
 	}
+}
+
+void ParticleCollection::GenerateEZInteraction(TH2D * h2){
+
+
+	for(auto interaction : collection){
+		double z = interaction.GetWeightedPosition().z;
+		double energy = interaction.GetTotalEnergy();
+
+		h2->Fill(energy, z);
+	}
+
 }
 
 void ParticleCollection::ApplyPartialChargeModel(TH1D * hCorrSpectrum, TF1 * fPartialCharge) const{

@@ -17,7 +17,7 @@
 
 #define keV 1000
 #define um 1000
-#define zoffset 675.0/2
+#define zoffset 0
 
 struct Position
 {
@@ -49,6 +49,7 @@ public:
 	std::vector<double> GetEnergy() { return energy; };
 	std::vector<Position> GetPosition(){ return position; };
 	std::vector<int> GetTrackID(){ return trackid; }
+	Position GetWeightedPosition();
 	int GetRunID(){ return eventid; };
 	int GetNSteps() { return nsteps; };
 
@@ -71,6 +72,7 @@ public:
 	void ReadROOTFile(const char * filename);
 	void PlotEnergyProjection(TH1D * hSpectrum);
 	void ApplyPartialChargeModel(TH1D * hCorrSpectrum, TF1 * fPartialCharge) const;
+	void GenerateEZInteraction(TH2D * h2);
 
 
 	std::vector<ParticleInteraction> collection;

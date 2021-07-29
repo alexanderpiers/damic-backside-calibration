@@ -24,9 +24,9 @@ SiliconRunAction::SiliconRunAction() : G4UserRunAction()
 	analysisManager->SetFirstHistoId(0);
 
 	// Create the histograms for total energy deposition
-	analysisManager->CreateH1("EneDepsi", "Energy Deposited in Silicon", 100, 0., 100*keV, "keV");
-	analysisManager->CreateH1("WeightedZPosition", "Weighted Position of Interaction", 300, -siliconZ / 2, siliconZ / 2);
-	analysisManager->CreateH2("EvZ", "Energy vs. Depth", 100, 0., 100.*keV, 300, -siliconZ / 2, siliconZ / 2);
+	analysisManager->CreateH1("EneDepsi", "Energy Deposited in Silicon", 1000, 0., 100*keV, "keV");
+	analysisManager->CreateH1("WeightedZPosition", "Weighted Position of Interaction", 3000, 0, siliconZ, "um");
+	analysisManager->CreateH2("EvZ", "Energy vs. Depth", 200, 0., 100.*keV, 675, 0, siliconZ, "keV", "um");
 
 
 	if(!SIMPLE)

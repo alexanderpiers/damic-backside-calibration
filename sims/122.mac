@@ -5,12 +5,21 @@
 /tracking/verbose 0
 /event/verbose 0
 
-#/gps/ene/mono 2 keV
-#/gps/position 0 0 -1.1 mm
+#/gps/particle gamma
+#/gps/ene/type Mono
+#/gps/ene/mono 6. keV
+#/gps/pos/centre 0 0 80 mm
 #/gps/ang/type iso
 #/gps/ang/mintheta 179 deg
-/analysis/setFileName si_penetration_depth.root
+
+/gun/particle gamma
+/gun/energy 6. keV
+/gun/direction 0 0 -1
+/gun/position 0 0 80 mm
+
+
+/analysis/setFileName test_fe55.root
 /run/setCut 0.5 um
-/run/beamOn 10000
+/run/beamOn 100000
 
 

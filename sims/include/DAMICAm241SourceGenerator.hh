@@ -45,44 +45,42 @@ private:
 
 
 	// Gamma Decays
-	static const int ngamma = 2;
+	static const int ngamma = 3;
 	const double vGammaEnergy[ngamma] = 
 	{
-		26.38 * keV,
+		13.9 * keV,
+		26.34 * keV,
 		59.65 * keV
 	};
 	double vGammaIntensity[ngamma] = {
-		0.04,
-		0.40
+		0.37,
+		0.0227,
+		0.359
 	};
 	double gammaNorm;
 
 
 	// Conversion Electrons
-	static const int nce = 9;
+	static const int nce = 7;
 	const double vElectronEnergy[nce] = 
 	{
-		10.6 * keV,
-		27.3 * keV,
-		20.8 * keV,
-		21.8 * keV,
-		25.8 * keV,
+		3.91 * keV,
+		10.77 * keV,
+		20.6 * keV,
+		20.99 * keV,
+		27.47 * keV,
 		37.1 * keV,
-		42.0 * keV,
-		54.4 * keV,
-		59.2 * keV
+		53.89 * keV
 	};
 	double vElectronIntensity[nce] = 
 	{
-		0.067,
-		0.018,
-		0.017,
-		0.035,
-		0.039,
-		0.236,
-		0.054,
-		0.064,
-		0.014
+		0.14,
+		0.18,
+		0.036,
+		0.091,
+		0.044,
+		0.302,
+		0.081,
 	};
 	double ceNorm;
 	double gammaCeNorm;

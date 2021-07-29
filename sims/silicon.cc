@@ -23,7 +23,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
 
-	DAMICAm241Source * am241 = new DAMICAm241Source();
+	// DAMICAm241Source * am241 = new DAMICAm241Source();
 	
 	// Detect interactive mode if no arguments passed and define ui session
 	G4UIExecutive* ui = 0;

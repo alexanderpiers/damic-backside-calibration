@@ -46,7 +46,7 @@ SiliconPrimaryGeneratorAction::SiliconPrimaryGeneratorAction()
 
 	// Define parameters of the source
 	// fParticleGun->SetParticleEnergy(0*eV);
-	fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,10*mm));
+	fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,80*mm));
 
 	
 
@@ -90,22 +90,34 @@ void SiliconPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 	// Should speed up having to wait for decay
 
 	// Test Am241 decay
-	DAMICAm241Source * am241 = new DAMICAm241Source();
+	// DAMICAm241Source * am241 = new DAMICAm241Source();
+
+	// // G4ParticleTable* particleTable= G4ParticleTable::GetParticleTable();
+	// G4DynamicParticle * particle = am241->generateGammaCEDecay();
+
+	// // G4ParticleDefinition* particle = particleTable->FindParticle("gamma");
+
+	// 	G4cout << "Particle type: " << particle->GetDefinition()->GetParticleName() << G4endl;
+	// 	G4cout << "Particle energy [keV]: " << particle->GetKineticEnergy() / keV << G4endl;
+
+	// 	G4String particleName = particle->GetDefinition()->GetParticleName();
+	// 	// if(particleName == "e-" || particleName == "e+" || particleName == "alpha"){
+	// 		// G4cout << "Particle simulated" << G4endl;
+	// 		fParticleGun->SetParticleDefinition(particle->GetDefinition());
+	// 		fParticleGun->SetParticleEnergy(particle->GetKineticEnergy());
+	// 		// fParticleGun->SetParticleMomentumDirection(G4ParticleMomentum(0, 0, -1.));
+	// 		fParticleGun->SetParticleMomentumDirection(am241->generateGeneralMomentum(0, twopi, halfpi, pi));
+	// 		fParticleGun->SetParticleCharge(particle->GetCharge());
 
 
-	G4DynamicParticle * particle = am241->generateGammaCEDecay();
-
-		// G4cout << "Particle type: " << particle->GetDefinition()->GetParticleName() << G4endl;
-		// G4cout << "Particle energy [keV]: " << particle->GetKineticEnergy() / keV << G4endl;
-
-		G4String particleName = particle->GetDefinition()->GetParticleName();
-		// if(particleName == "e-" || particleName == "e+" || particleName == "alpha"){
-			// G4cout << "Particle simulated" << G4endl;
-			fParticleGun->SetParticleDefinition(particle->GetDefinition());
-			fParticleGun->SetParticleEnergy(particle->GetKineticEnergy());
+			// Simulate gamma only
+			// fParticleGun->SetParticleDefinition(particle);
+			// fParticleGun->SetParticleEnergy(2*keV);
 			// fParticleGun->SetParticleMomentumDirection(G4ParticleMomentum(0, 0, -1.));
-			fParticleGun->SetParticleMomentumDirection(am241->generateGeneralMomentum(0, twopi, halfpi, pi));
-			fParticleGun->SetParticleCharge(particle->GetCharge());
+			// fParticleGun->SetParticleMomentumDirection(am241->generateGeneralMomentum(0, twopi, halfpi, pi));\
+			// fParticleGun->SetParticleCharge(particle->GetCharge());
+
+
 
 			fParticleGun->GeneratePrimaryVertex(event);
 		// }
